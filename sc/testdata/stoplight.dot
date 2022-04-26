@@ -1,0 +1,16 @@
+digraph "" {
+    stopped;
+    deciding;
+    going;
+    stopped -> stopped [label="red/brake"];
+    stopped -> deciding [label="yellow/decide"];
+    stopped -> going [label="green/gas"];
+    deciding -> stopped [label="stop/brake"];
+    deciding -> going [label="go/gas"];
+    deciding -> stopped [label="red/brake"];
+    deciding -> deciding [label="yellow/decide"];
+    deciding -> going [label="green/gas"];
+    going -> going [label="green/"];
+    going -> stopped [label="red/brake"];
+    going -> deciding [label="yellow/decide"];
+}

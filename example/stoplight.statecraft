@@ -14,16 +14,12 @@ s going through light
 // Regular expressions can be used as wildcards in the source name.
 // The first matching rule will be used.
 
-t stopped green/gas going 
-
 t going green going
-t going yellow/decide deciding 
-t going red/brake stopped 
 
-t deciding green going
-t deciding yellow deciding
 t deciding stop/brake stopped 
-t deciding go going 
+t deciding go/gas going 
 
 t .* red/brake stopped 
+t .* yellow/decide deciding 
+t .* green/gas going
 

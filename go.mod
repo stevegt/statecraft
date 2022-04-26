@@ -1,17 +1,10 @@
-module main
+module github.com/stevegt/statecraft
 
 go 1.17
 
-// replace github.com/stevegt/goadapt => /home/stevegt/lab/goadapt
+replace github.com/stevegt/goadapt => /home/stevegt/lab/goadapt
 
 require (
-	github.com/goccy/go-graphviz v0.0.9
+	github.com/sergi/go-diff v1.2.0
 	github.com/stevegt/goadapt v0.1.0
-)
-
-require (
-	github.com/fogleman/gg v1.3.0 // indirect
-	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-	golang.org/x/image v0.0.0-20200119044424-58c23975cae1 // indirect
 )
