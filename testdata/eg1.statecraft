@@ -1,0 +1,29 @@
+// Comments look like this.  We ignore blank lines.
+
+// Declare states with an 's' followed by the state node label.
+// - the first word of the node label is used as the state name 
+// - the state name must be unique
+
+s stopped at red light
+s deciding whether to stop
+s going through light 
+
+// Declare transitions with a 't' followed by the source state, event
+// name, and destination state.  Declare an optional transition method
+// name as part of the event name, after a slash.
+// Regular expressions can be used as wildcards in the source name.
+// The first matching rule will be used.
+
+t stopped green/gas going 
+
+t going green going
+t going yellow/decide deciding 
+t going red/brake stopped 
+
+t deciding green going
+t deciding yellow deciding
+t deciding stop/brake stopped 
+t deciding go going 
+
+t .* red/brake stopped 
+
