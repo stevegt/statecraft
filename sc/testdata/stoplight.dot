@@ -1,7 +1,10 @@
 digraph "" {
-    stopped;
-    deciding;
-    going;
+    
+    stopped; // stopped at red light
+    deciding; // deciding whether to stop
+    going; // going through light
+
+    
     stopped -> stopped [label="red/brake"];
     stopped -> deciding [label="yellow/decide"];
     stopped -> going [label="green/gas"];

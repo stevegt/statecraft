@@ -19,8 +19,8 @@ func main() {
 	m, err := sc.Load(infh)
 	Ck(err)
 	// Pprint(m)
-	txt := m.ToDot()
+	buf := m.ToDot()
 
-	err = ioutil.WriteFile(outfn, []byte(txt), 0644)
+	err = ioutil.WriteFile(outfn, buf, 0644)
 	Ck(err)
 }

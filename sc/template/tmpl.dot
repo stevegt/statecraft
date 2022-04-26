@@ -1,0 +1,9 @@
+digraph "" {
+    {{range $n := .LsStates}}
+    {{$n.Name}}; // {{$n.Label}}
+    {{- end}}
+
+    {{range $t := .LsTransitions}}
+    {{$t.Src}} -> {{$t.Dst}} [label="{{$t.Event}}/{{$t.Method}}"]; 
+    {{- end}}
+}

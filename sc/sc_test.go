@@ -1,6 +1,7 @@
 package sc
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -18,13 +19,13 @@ func TestDot(t *testing.T) {
 
 	m, err := Load(infh)
 	Tassert(t, err == nil, err)
-	txt := m.ToDot()
+	got := m.ToDot()
 
 	ref, err := ioutil.ReadFile(reffn)
 	Tassert(t, err == nil, err)
 
 	dmp := diffmatchpatch.New()
-	diffs := dmp.DiffMain(string(ref), txt, false)
-	Tassert(t, txt == string(ref), dmp.DiffPrettyText(diffs))
+	diffs := dmp.DiffMain(string(ref), string(got), false)
+	Tassert(t, bytes.Equal(ref, got), dmp.DiffPrettyText(diffs))
 
 }

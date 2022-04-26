@@ -2,35 +2,39 @@ package sc
 
 import (
 	"bufio"
+	"bytes"
+	"embed"
 	"io"
 	"regexp"
 	"strings"
+	"text/template"
 
 	. "github.com/stevegt/goadapt"
 )
 
-type Event string
-type stateName string
-
 type State struct {
-	Name        stateName
+	Name        string
 	Label       string
 	Transitions Transitions
-	events      []Event
+	events      []string
 }
 
-type Transitions map[Event]*Transition
+// map[eventName]*Transition
+type Transitions map[string]*Transition
 
 type Transition struct {
+	Src    string
+	Event  string
 	Method string
-	Dst    stateName
+	Dst    string
 }
 
-type States map[stateName]*State
+// map[stateName]*State
+type States map[string]*State
 
 type Machine struct {
 	States     States
-	stateNames []stateName
+	stateNames []string
 }
 
 func Load(fh io.Reader) (m *Machine, err error) {
@@ -58,7 +62,7 @@ func (m *Machine) AddRule(txt string) {
 	case "s":
 		Assert(len(parts) >= 2, "missing state name: %s", txt)
 		s := &State{
-			Name:        stateName(parts[1]),
+			Name:        parts[1],
 			Label:       strings.Join(parts[1:], " "),
 			Transitions: make(Transitions),
 		}
@@ -88,30 +92,32 @@ func (m *Machine) AddRule(txt string) {
 		event, method := split(parts[2])
 		dstname := parts[3]
 
-		_, ok := m.States[stateName(dstname)]
+		_, ok := m.States[dstname]
 		Assert(ok, "unknown destination state %s: %s", dstname, txt)
 
 		re := regexp.MustCompile(Spf("^%s$", srcpat))
 		found := false
 		Debug(txt)
-		for name, state := range m.States {
-			if !re.MatchString(string(name)) {
+		for srcName, state := range m.States {
+			if !re.MatchString(string(srcName)) {
 				continue
 			}
-			Debug("matched %s", name)
+			Debug("matched %s", srcName)
 			found = true
-			if state.Transitions[Event(event)] != nil {
+			if state.Transitions[event] != nil {
 				// first rule wins
 				Debug("skipping")
 				continue
 			}
 			t := &Transition{
+				Src:    srcName,
+				Event:  event,
 				Method: method,
-				Dst:    stateName(dstname),
+				Dst:    dstname,
 			}
-			state.Transitions[Event(event)] = t
+			state.Transitions[event] = t
 			// maintain ordered list so we can provide reproducible output
-			state.events = append(state.events, Event(event))
+			state.events = append(state.events, event)
 			Debug("added %s %s %v", state.Name, event, t)
 			// Pprint(m)
 		}
@@ -121,81 +127,32 @@ func (m *Machine) AddRule(txt string) {
 	}
 }
 
-type Node struct {
-	Name  string
-	Label string
-}
-
-type Edge struct {
-	Tail  string
-	Head  string
-	Label string
-}
-
-type Nodes []Node
-type Edges []Edge
-
-type Dot struct {
-	Nodes Nodes
-	Edges Edges
-}
-
-func NewDot() *Dot {
-	dot := &Dot{}
-	return dot
-}
-
-func (d *Dot) AddNode(name, label string) {
-	for _, n := range d.Nodes {
-		if n.Name == name {
-			return
-		}
+func (m *Machine) LsStates() (out []*State) {
+	for _, name := range m.stateNames {
+		out = append(out, m.States[name])
 	}
-	d.Nodes = append(d.Nodes, Node{name, label})
-}
-
-func (d *Dot) AddEdge(tail, head, label string) {
-	edge := Edge{tail, head, label}
-	d.Edges = append(d.Edges, edge)
-}
-
-func (d *Dot) String() (out string) {
-	out = "digraph \"\" {\n"
-	for _, node := range d.Nodes {
-		name := node.Name
-		label := node.Label
-		if false {
-			out += Spf("    %s [label=\"%s\"];\n", name, label)
-		} else {
-			out += Spf("    %s;\n", name)
-		}
-	}
-	for _, e := range d.Edges {
-		out += Spf("    %s -> %s [label=\"%s\"];\n", e.Tail, e.Head, e.Label)
-	}
-	out += "}\n"
 	return
 }
 
-func (m *Machine) ToDot() (txt string) {
-
-	dot := NewDot()
-
-	for _, name := range m.stateNames {
-		state := m.States[name]
-		dot.AddNode(string(state.Name), state.Label)
-	}
-
+func (m *Machine) LsTransitions() (out []*Transition) {
 	for _, srcName := range m.stateNames {
 		src := m.States[srcName]
 		for _, event := range src.events {
 			t := src.Transitions[event]
-			dstName := t.Dst
-			dst := m.States[dstName]
-			dot.AddEdge(string(src.Name), string(dst.Name), Spf("%s/%s", event, t.Method))
+			out = append(out, t)
 		}
 	}
+	return
+}
 
-	txt = dot.String()
+//go:embed template/*
+var fs embed.FS
+
+func (m *Machine) ToDot() (out []byte) {
+	t := template.Must(template.ParseFS(fs, "template/tmpl.dot"))
+	var buf bytes.Buffer
+	err := t.Execute(&buf, m)
+	Ck(err)
+	out = buf.Bytes()
 	return
 }
