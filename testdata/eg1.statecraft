@@ -1,7 +1,7 @@
 // Comments look like this.  We ignore blank lines.
 
-// Declare states with an 's' followed by the state node label.
-// - the first word of the node label is used as the state name 
+// Declare states with an 's' followed by the state node description.
+// - the first word of the description is used as the state node name 
 // - the state name must be unique
 
 s stopped at red light
