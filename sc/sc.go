@@ -33,17 +33,23 @@ type Transition struct {
 type States map[string]*State
 
 type Machine struct {
+	Cmdline    string
+	Package    string
+	Txt        string
 	States     States
 	stateNames []string
 }
 
-func Load(fh io.Reader) (m *Machine, err error) {
+func Load(fh io.Reader, cmdline string) (m *Machine, err error) {
 	defer Return(&err)
 	m = &Machine{}
+	m.Cmdline = cmdline
 	m.States = make(States)
 	scanner := bufio.NewScanner(fh)
 	for scanner.Scan() {
-		m.AddRule(scanner.Text())
+		txt := scanner.Text()
+		m.AddRule(txt)
+		m.Txt += Spf("%s\n", txt)
 	}
 	err = scanner.Err()
 	Ck(err)
@@ -59,6 +65,8 @@ func (m *Machine) AddRule(txt string) {
 	switch typ {
 	case "//":
 		return
+	case "package":
+		m.Package = parts[1]
 	case "s":
 		Assert(len(parts) >= 2, "missing state name: %s", txt)
 		s := &State{
@@ -149,7 +157,16 @@ func (m *Machine) LsTransitions() (out []*Transition) {
 var fs embed.FS
 
 func (m *Machine) ToDot() (out []byte) {
-	t := template.Must(template.ParseFS(fs, "template/tmpl.dot"))
+	t := template.Must(template.ParseFS(fs, "template/dot.ttmpl"))
+	var buf bytes.Buffer
+	err := t.Execute(&buf, m)
+	Ck(err)
+	out = buf.Bytes()
+	return
+}
+
+func (m *Machine) ToGo() (out []byte) {
+	t := template.Must(template.ParseFS(fs, "template/go.ttmpl"))
 	var buf bytes.Buffer
 	err := t.Execute(&buf, m)
 	Ck(err)
