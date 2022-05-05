@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"embed"
+	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -16,7 +17,6 @@ type State struct {
 	Name        string
 	Label       string
 	Transitions Transitions
-	events      []string
 }
 
 // map[eventName]*Transition
@@ -33,11 +33,15 @@ type Transition struct {
 type States map[string]*State
 
 type Machine struct {
-	Cmdline    string
-	Package    string
-	Txt        string
-	States     States
-	stateNames []string
+	Cmdline string
+	Package string
+	Machine string
+	Txt     string
+	States  States
+	// maintain ordered lists so we can provide reproducible output
+	StateNames  []string
+	EventNames  []string
+	MethodNames []string
 }
 
 func Load(fh io.Reader, cmdline string) (m *Machine, err error) {
@@ -53,6 +57,10 @@ func Load(fh io.Reader, cmdline string) (m *Machine, err error) {
 	}
 	err = scanner.Err()
 	Ck(err)
+
+	err = m.Verify()
+	Ck(err)
+
 	return
 }
 
@@ -67,6 +75,8 @@ func (m *Machine) AddRule(txt string) {
 		return
 	case "package":
 		m.Package = parts[1]
+	case "machine":
+		m.Machine = parts[1]
 	case "s":
 		Assert(len(parts) >= 2, "missing state name: %s", txt)
 		s := &State{
@@ -77,8 +87,7 @@ func (m *Machine) AddRule(txt string) {
 		_, ok := m.States[s.Name]
 		Assert(!ok, "duplicate state name: %s", txt)
 		m.States[s.Name] = s
-		// maintain ordered list so we can provide reproducible output
-		m.stateNames = append(m.stateNames, s.Name)
+		m.StateNames = appendUniq(m.StateNames, s.Name)
 	case "t":
 		Assert(len(parts) > 1, "missing transition src: %s", txt)
 		Assert(len(parts) > 2, "missing transition event: %s", txt)
@@ -124,34 +133,110 @@ func (m *Machine) AddRule(txt string) {
 				Dst:    dstname,
 			}
 			state.Transitions[event] = t
-			// maintain ordered list so we can provide reproducible output
-			state.events = append(state.events, event)
+			m.EventNames = appendUniq(m.EventNames, event)
+			m.MethodNames = appendUniq(m.MethodNames, method)
 			Debug("added %s %s %v", state.Name, event, t)
 			// Pprint(m)
 		}
 		Assert(found, "unknown source state %s: %s", srcpat, txt)
 	default:
-		Assert(false, "unrecognized entry: %s")
+		Assert(false, "unrecognized entry: %s", txt)
 	}
 }
 
+func (m *Machine) Verify() (err error) {
+	for stateName, state := range m.States {
+		for _, eventName := range m.EventNames {
+			_, ok := state.Transitions[eventName]
+			if !ok {
+				err = fmt.Errorf("unhandled event: machine %v, state %v, event %v", m.Machine, stateName, eventName)
+				return
+			}
+		}
+	}
+	return
+}
+
+func appendUniq(in []string, add string) (out []string) {
+	out = in[:]
+	if add == "" {
+		return
+	}
+	found := false
+	for _, s := range out {
+		if s == add {
+			found = true
+			break
+		}
+	}
+	if !found {
+		out = append(out, add)
+	}
+	return
+}
+
 func (m *Machine) LsStates() (out []*State) {
-	for _, name := range m.stateNames {
+	for _, name := range m.StateNames {
 		out = append(out, m.States[name])
 	}
 	return
 }
 
 func (m *Machine) LsTransitions() (out []*Transition) {
-	for _, srcName := range m.stateNames {
+	for _, srcName := range m.StateNames {
 		src := m.States[srcName]
-		for _, event := range src.events {
-			t := src.Transitions[event]
-			out = append(out, t)
+		// we iterate over m.EventNames instead of src.Transitions
+		// here because we want to preserve ordering for reproducible
+		// output
+		for _, eventName := range m.EventNames {
+			t, ok := src.Transitions[eventName]
+			if ok {
+				out = append(out, t)
+			}
 		}
 	}
 	return
 }
+
+/*
+func (m *Machine) LsEvents() (out []string) {
+	for _, srcName := range m.stateNames {
+		src := m.States[srcName]
+		for _, event := range src.events {
+			found := false
+			for _, e := range out {
+				if event == e {
+					found = true
+					break
+				}
+			}
+			if !found {
+				out = append(out, event)
+			}
+		}
+	}
+	return
+}
+
+func (m *Machine) LsMethods() (out []string) {
+	for _, srcName := range m.stateNames {
+		src := m.States[srcName]
+		for _, event := range src.events {
+			found := false
+			for _, e := range out {
+				if event == e {
+					found = true
+					break
+				}
+			}
+			if !found {
+				out = append(out, event)
+			}
+		}
+	}
+	return
+}
+*/
 
 //go:embed template/*
 var fs embed.FS

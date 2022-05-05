@@ -1,0 +1,12 @@
+digraph "stoplight" {
+    label="Stoplight state machine";
+    
+    Red; // Red
+    Yellow; // Yellow
+    Green; // Green
+
+    
+    Red -> Green [label="Timer/"];
+    Yellow -> Red [label="Timer/"];
+    Green -> Yellow [label="Timer/"];
+}

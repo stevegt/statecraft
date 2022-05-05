@@ -1,16 +1,17 @@
 // Comments look like this.  We ignore blank lines.
 
-// Declare Go package and dot graph name.
+// Declare Go package and state machine name.
 
 package stoplight
+machine Stoplight
 
 // Declare states with an 's' followed by the state node description.
 // - the first word of the description is used as the state node name 
 // - the state name must be unique
 
-s stopped at red light
-s deciding whether to stop
-s going through light 
+s Red
+s Yellow
+s Green
 
 // Declare transitions with a 't' followed by the source state, event
 // name, and destination state.  Declare an optional transition method
@@ -18,12 +19,6 @@ s going through light
 // Regular expressions can be used as wildcards in the source name.
 // The first matching rule will be used.
 
-t going green going
-
-t deciding stop/brake stopped 
-t deciding go/gas going 
-
-t .* red/brake stopped 
-t .* yellow/decide deciding 
-t .* green/gas going
-
+t Red Timer Green
+t Green Timer Yellow
+t Yellow Timer Red

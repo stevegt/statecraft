@@ -1,0 +1,30 @@
+digraph "car" {
+    label="Car state machine";
+    
+    Stopped; // Stopped at red light
+    Deciding; // Deciding whether to stop
+    Going; // Going through light
+    Beyond; // Beyond light already
+
+    
+    Stopped -> Going [label="Green/Gas"];
+    Stopped -> Stopped [label="Stop/Brake"];
+    Stopped -> Going [label="Go/Gas"];
+    Stopped -> Stopped [label="Red/Brake"];
+    Stopped -> Deciding [label="Yellow/Decide"];
+    Deciding -> Going [label="Green/Gas"];
+    Deciding -> Stopped [label="Stop/Brake"];
+    Deciding -> Going [label="Go/Gas"];
+    Deciding -> Stopped [label="Red/Brake"];
+    Deciding -> Deciding [label="Yellow/Decide"];
+    Going -> Going [label="Green/Gas"];
+    Going -> Stopped [label="Stop/Brake"];
+    Going -> Going [label="Go/Gas"];
+    Going -> Beyond [label="Red/Gas"];
+    Going -> Deciding [label="Yellow/Decide"];
+    Beyond -> Going [label="Green/Gas"];
+    Beyond -> Stopped [label="Stop/Brake"];
+    Beyond -> Going [label="Go/Gas"];
+    Beyond -> Stopped [label="Red/Brake"];
+    Beyond -> Deciding [label="Yellow/Decide"];
+}

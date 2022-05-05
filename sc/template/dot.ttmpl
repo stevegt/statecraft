@@ -1,5 +1,5 @@
 digraph "{{.Package}}" {
-    label="{{.Package}} state machine";
+    label="{{.Machine}} state machine";
     {{range $n := .LsStates}}
     {{$n.Name}}; // {{$n.Label}}
     {{- end}}
