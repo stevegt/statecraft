@@ -1,11 +1,9 @@
 # statecraft
-State machine generator that generates Go code and graphviz dot files from
+State machine compiler that generates Go code and graphviz dot files from
 a simple DSL.
 
-See ./example/stoplight for a (probably overly complicated) demo which
-includes two communicating state machines.
-
-The DSL looks like this (from the car state machine in the example):
+See ./example/stoplight for a demo of two interacting state machines.
+The `car` DSL from that example looks like this:
 
 ```
 // Comments look like this.  We ignore blank lines.
