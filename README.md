@@ -24,16 +24,18 @@ go install github.com/stevegt/statecraft@latest
 3. Run `mkdir foo`, where `foo` is the name of the state machine
    you're creating.
 1. Write a `foo/foo.statecraft` file that describes the state machine
-   you want to generate.  See below and ./example for the DSL syntax.
+   you want to generate.  See below and
+   `./example/stoplight/car/car.statecraft` for the DSL syntax.
 2. Run `statecraft foo/foo.statecraft foo/foo.dot` to get the graphviz
    output.
 3. Fix any errors thrown by the `statecraft` run.  As of this writing,
-   the most likely errors will be cases where you need to add DSL
-   statements to handle events in states where you didn't expect them.
-   A wildcard state is an easy way to handle these -- see
+   the most likely errors will be cases where you need to add DSL `t`
+   (transition) statements to handle events in states where you didn't
+   expect them.  A wildcard source state is an easy way to handle
+   these -- see the bottom of
    `./example/stoplight/car/car.statecraft`.
 4. Use `xdot` or your favorite graphviz viewer to visually inspect the
-   state machine you've created.  Fix bugs.
+   dot file for the state machine you've created.  Fix bugs.
 2. Run `statecraft foo/foo.statecraft foo/foo.go` to generate the Go
    code for your state machine.
 1. In your calling code, create a struct or other custom type with
@@ -74,8 +76,9 @@ s Beyond light already
 // Declare transitions with a 't' followed by the source state, event
 // name, and destination state.  Declare an optional transition method
 // name as part of the event name, after a slash.
-// Regular expressions can be used as wildcards in the source name.
-// The first matching rule will be used.
+// 
+// Regular expressions can be used as wildcards in the source state
+// field.  The first matching rule will be used.
 
 t Going Green/Gas Going
 
@@ -88,5 +91,4 @@ t .* Yellow/Decide Deciding
 t .* Green/Gas Going
 t .* Stop/Brake Stopped
 t .* Go/Gas Going
-
 ```

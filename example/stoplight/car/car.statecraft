@@ -17,8 +17,9 @@ s Beyond light already
 // Declare transitions with a 't' followed by the source state, event
 // name, and destination state.  Declare an optional transition method
 // name as part of the event name, after a slash.
-// Regular expressions can be used as wildcards in the source name.
-// The first matching rule will be used.
+// 
+// Regular expressions can be used as wildcards in the source state
+// field.  The first matching rule will be used.
 
 t Going Green/Gas Going
 
