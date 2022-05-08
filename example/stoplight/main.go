@@ -17,24 +17,40 @@ import (
 
 func main() {
 
-	// start a goroutine that creates a stoplight state machine and
-	// emits light change events
+	// Start a goroutine that creates a stoplight state machine that
+	// emits light change events on an events channel.
+	//
+	// It might help to ignore the fact that we have two state
+	// machines in this code -- the car state machine is the important
+	// one.  The stoplight state machine, the events channel, and the
+	// light() function are just here to provide a source of external
+	// events for car to react to -- see the event loop below.
+	//
+	// In your own application, you might instead get events from a
+	// sensor or io.Reader, or you might write an io.Writer method
+	// somewhere that directly calls the Tick() method in your state
+	// machine's generated code.
 	ssm, events := light()
 
-	// create a Car system that contains the callbacks for the car
-	// state machine to call
-	csys := &Car{Events: events}
+	// Create an instance of a Handlers-compliant struct.  See the
+	// Handlers interface in car/car.go and the comments below.
+	handlers := &Car{events: events}
 
-	// create a car state machine
-	csm := c.New(csys, c.Stopped)
+	// Create a car state machine, passing it the handlers and
+	// initial state.
+	car := c.New(handlers, c.Stopped)
 
-	// run forever, processing events from stoplight in callbacks
+	// Main event loop:  Run forever, passing events from stoplight to
+	// car.Tick().
 	for event := range events {
 		Pf("light is %-8v ", ssm.State)
 		Pf("event %-8v ", event)
-		state, err := csm.Tick(event)
+		// Send event to car, get back new state.  However you get
+		// events, you simply need to call your generated state
+		// machine's Tick() method once for each event.
+		state, err := car.Tick(event)
 		Ck(err)
-		Pf("%-15s ", csys.action)
+		Pf("%-15s ", handlers.action)
 		Pl("car is", state)
 	}
 }
@@ -45,9 +61,14 @@ func light() (ssm *stoplight.Machine, events chan c.Event) {
 	ssm = s.New(nil, stoplight.Red)
 	go func() {
 		for {
+			// send timer event to the stoplight, getting back new
+			// light state
 			lightState, err := ssm.Tick(s.Timer)
 			Ck(err)
+			// send the new stoplight state to the car, casting it as
+			// a car state machine input event
 			events <- c.Event(lightState)
+			// sleep until next timer event
 			switch lightState {
 			case s.Green:
 				time.Sleep(5 * time.Second)
@@ -61,23 +82,39 @@ func light() (ssm *stoplight.Machine, events chan c.Event) {
 	return
 }
 
+// Car is a set of event handlers that the car state machine will call
+// -- see the car.Handlers interface in car.go.
+//
+// In this example, the events field is a channel we will use to send
+// stoplight change events to the car state machine from light(), to
+// be processed by the event loop in main().  Whether you need some
+// sort of events channel like this depends completely on your
+// application and event loop -- see the comments in main().
+//
+// The action field is just a place for handlers to store a text
+// description of a transition, and isn't strictly needed for
+// functionality.
+//
+// In other words, your application may not need either of these
+// fields, or may need others -- it's up to you.  An empty struct with
+// just the Handler interface methods may be enough.
 type Car struct {
-	Events chan c.Event
+	events chan c.Event
 	action string
 }
 
-func (csys *Car) Brake() {
-	csys.action = "applying brake"
+func (handlers *Car) Brake() {
+	handlers.action = "applying brake"
 }
 
-func (csys *Car) Gas() {
-	csys.action = "applying gas"
+func (handlers *Car) Gas() {
+	handlers.action = "applying gas"
 }
 
-func (csys *Car) Decide() {
+func (handlers *Car) Decide() {
 	if rand.Float64() < rand.Float64() {
-		csys.Events <- c.Event("Go")
+		handlers.events <- c.Event("Go")
 	} else {
-		csys.Events <- c.Event("Stop")
+		handlers.events <- c.Event("Stop")
 	}
 }

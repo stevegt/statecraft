@@ -6,7 +6,7 @@ import "fmt"
 // DO NOT EDIT
 // Original .statecraft file contents included at bottom.
 
-type System interface {
+type Handlers interface {
     Gas()
     Brake()
     Decide()
@@ -45,102 +45,100 @@ type Graph map[State]Transitions
 
 type Machine struct {
     g Graph
-    sys System
     State State
 }
 
-func New(sys System, initState State) (m *Machine) {
+func New(handlers Handlers, initState State) (m *Machine) {
     m = &Machine{
-        sys: sys,
         State: initState,
     }
     m.g = Graph{
         State("Stopped"):  Transitions{
             Event("Go"): Transition{
                     Dst: State("Going"), 
-                    Method: sys.Gas, 
+                    Method: handlers.Gas, 
             },
             Event("Green"): Transition{
                     Dst: State("Going"), 
-                    Method: sys.Gas, 
+                    Method: handlers.Gas, 
             },
             Event("Red"): Transition{
                     Dst: State("Stopped"), 
-                    Method: sys.Brake, 
+                    Method: handlers.Brake, 
             },
             Event("Stop"): Transition{
                     Dst: State("Stopped"), 
-                    Method: sys.Brake, 
+                    Method: handlers.Brake, 
             },
             Event("Yellow"): Transition{
                     Dst: State("Deciding"), 
-                    Method: sys.Decide, 
+                    Method: handlers.Decide, 
             },
         },
         State("Deciding"):  Transitions{
             Event("Go"): Transition{
                     Dst: State("Going"), 
-                    Method: sys.Gas, 
+                    Method: handlers.Gas, 
             },
             Event("Green"): Transition{
                     Dst: State("Going"), 
-                    Method: sys.Gas, 
+                    Method: handlers.Gas, 
             },
             Event("Red"): Transition{
                     Dst: State("Stopped"), 
-                    Method: sys.Brake, 
+                    Method: handlers.Brake, 
             },
             Event("Stop"): Transition{
                     Dst: State("Stopped"), 
-                    Method: sys.Brake, 
+                    Method: handlers.Brake, 
             },
             Event("Yellow"): Transition{
                     Dst: State("Deciding"), 
-                    Method: sys.Decide, 
+                    Method: handlers.Decide, 
             },
         },
         State("Going"):  Transitions{
             Event("Go"): Transition{
                     Dst: State("Going"), 
-                    Method: sys.Gas, 
+                    Method: handlers.Gas, 
             },
             Event("Green"): Transition{
                     Dst: State("Going"), 
-                    Method: sys.Gas, 
+                    Method: handlers.Gas, 
             },
             Event("Red"): Transition{
                     Dst: State("Beyond"), 
-                    Method: sys.Gas, 
+                    Method: handlers.Gas, 
             },
             Event("Stop"): Transition{
                     Dst: State("Stopped"), 
-                    Method: sys.Brake, 
+                    Method: handlers.Brake, 
             },
             Event("Yellow"): Transition{
                     Dst: State("Deciding"), 
-                    Method: sys.Decide, 
+                    Method: handlers.Decide, 
             },
         },
         State("Beyond"):  Transitions{
             Event("Go"): Transition{
                     Dst: State("Going"), 
-                    Method: sys.Gas, 
+                    Method: handlers.Gas, 
             },
             Event("Green"): Transition{
                     Dst: State("Going"), 
-                    Method: sys.Gas, 
+                    Method: handlers.Gas, 
             },
             Event("Red"): Transition{
                     Dst: State("Stopped"), 
-                    Method: sys.Brake, 
+                    Method: handlers.Brake, 
             },
             Event("Stop"): Transition{
                     Dst: State("Stopped"), 
-                    Method: sys.Brake, 
+                    Method: handlers.Brake, 
             },
             Event("Yellow"): Transition{
                     Dst: State("Deciding"), 
-                    Method: sys.Decide, 
+                    Method: handlers.Decide, 
             },
         },
     }

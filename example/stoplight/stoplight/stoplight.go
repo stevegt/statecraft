@@ -6,7 +6,7 @@ import "fmt"
 // DO NOT EDIT
 // Original .statecraft file contents included at bottom.
 
-type System interface {
+type Handlers interface {
 }
 
 // states
@@ -37,13 +37,11 @@ type Graph map[State]Transitions
 
 type Machine struct {
     g Graph
-    sys System
     State State
 }
 
-func New(sys System, initState State) (m *Machine) {
+func New(handlers Handlers, initState State) (m *Machine) {
     m = &Machine{
-        sys: sys,
         State: initState,
     }
     m.g = Graph{
