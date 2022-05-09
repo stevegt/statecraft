@@ -8,7 +8,6 @@ import (
 	"io"
 	"regexp"
 	"strings"
-	"syscall"
 	"text/template"
 
 	. "github.com/stevegt/goadapt"
@@ -59,9 +58,25 @@ func Load(fh io.Reader, cmdline string) (m *Machine, err error) {
 	err = scanner.Err()
 	Ck(err)
 
-	err = m.Verify()
-	Ck(err)
+	m.Verify()
 
+	return
+}
+
+type SCErr struct {
+	msg string
+	Rc  int
+}
+
+func (e SCErr) Error() string {
+	return e.msg
+}
+
+func SCErrIf(cond bool, rc int, args ...interface{}) {
+	if cond {
+		msg := fmt.Sprintf(args[0].(string), args[1:]...)
+		panic(SCErr{msg: msg, Rc: rc})
+	}
 	return
 }
 
@@ -77,26 +92,26 @@ func (m *Machine) AddRule(txt string) {
 	case "package":
 		m.Package = parts[1]
 	case "s":
-		Assert(len(parts) >= 2, "missing state name: %s", txt)
+		SCErrIf(len(parts) < 2, 2, "missing state name: %s", txt)
 		s := &State{
 			Name:        parts[1],
 			Label:       strings.Join(parts[1:], " "),
 			Transitions: make(Transitions),
 		}
 		_, ok := m.States[s.Name]
-		Assert(!ok, "duplicate state name: %s", txt)
+		SCErrIf(ok, 3, "duplicate state name: %s", txt)
 		m.States[s.Name] = s
 		m.StateNames = appendUniq(m.StateNames, s.Name)
 	case "t":
-		Assert(len(parts) > 1, "missing transition src: %s", txt)
-		Assert(len(parts) > 2, "missing transition event: %s", txt)
-		Assert(len(parts) > 3, "missing transition dst: %s", txt)
-		Assert(len(parts) < 5, "too many args: %#v", parts)
+		SCErrIf(len(parts) < 2, 4, "missing transition src: %s", txt)
+		SCErrIf(len(parts) < 3, 5, "missing transition event: %s", txt)
+		SCErrIf(len(parts) < 4, 6, "missing transition dst: %s", txt)
+		SCErrIf(len(parts) > 4, 7, "too many args: %#v", parts)
 
 		split := func(tok string) (name, method string) {
 			toks := strings.Split(tok, "/")
-			Assert(len(toks) > 0, tok)
-			Assert(len(toks) <= 2, tok)
+			SCErrIf(len(toks) < 1, 8, "missing event: %s", tok)
+			SCErrIf(len(toks) > 2, 9, "too many slashes: %s", tok)
 			name = toks[0]
 			if len(toks) == 2 {
 				method = toks[1]
@@ -109,7 +124,7 @@ func (m *Machine) AddRule(txt string) {
 		dstname := parts[3]
 
 		_, ok := m.States[dstname]
-		Assert(ok, "unknown destination state %s: %s", dstname, txt)
+		SCErrIf(!ok, 10, "unknown destination state %s: %s", dstname, txt)
 
 		re := regexp.MustCompile(Spf("^%s$", srcpat))
 		found := false
@@ -137,37 +152,19 @@ func (m *Machine) AddRule(txt string) {
 			Debug("added %s %s %v", state.Name, event, t)
 			// Pprint(m)
 		}
-		Assert(found, "unknown source state %s: %s", srcpat, txt)
+		SCErrIf(!found, 11, "unknown source state %s: %s", srcpat, txt)
 	default:
-		Assert(false, "unrecognized entry: %s", txt)
+		SCErrIf(true, 12, "unrecognized entry: %s", txt)
 	}
 }
 
-/*
-type SCError struct {
-	msg string
-}
-
-func (e SCError) Error() string {
-	return e.msg
-}
-
-func NewSCError(args ...interface{}) SCError {
-	return SCError{msg: FormatArgs(args)}
-}
-*/
-
-func (m *Machine) Verify() (err error) {
+func (m *Machine) Verify() {
 	for stateName, state := range m.States {
 		for _, eventName := range m.EventNames {
 			_, ok := state.Transitions[eventName]
-			if !ok {
-				err = fmt.Errorf("%w: unhandled event: machine %v, state %v, event %v", syscall.ENOSYS, m.Package, stateName, eventName)
-				return
-			}
+			SCErrIf(!ok, 13, "unhandled event: machine %v, state %v, event %v", m.Package, stateName, eventName)
 		}
 	}
-	return
 }
 
 func appendUniq(in []string, add string) (out []string) {

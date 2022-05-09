@@ -1,11 +1,9 @@
 package main
 
 import (
-	"errors"
 	"io/ioutil"
 	"os"
 	"strings"
-	"syscall"
 
 	. "github.com/stevegt/goadapt"
 	"github.com/stevegt/statecraft/sc"
@@ -13,7 +11,27 @@ import (
 
 const usage string = `usage: %s {infn} {outfn}`
 
+// convert panic into clean exit
+func exit() {
+	rc := 0
+	r := recover()
+	if r != nil {
+		switch concrete := r.(type) {
+		case sc.SCErr:
+			rc = concrete.Rc
+			Fpf(os.Stderr, "%s\n", concrete.Error())
+		default:
+			// not ours -- re-raise
+			panic(r)
+		}
+	}
+	os.Exit(rc)
+}
+
 func main() {
+	defer exit()
+	var err error
+
 	if len(os.Args) != 3 {
 		Fpf(os.Stderr, Spf("%s\n", usage), os.Args[0])
 		os.Exit(1)
@@ -23,9 +41,9 @@ func main() {
 	Ck(err)
 
 	m, err := sc.Load(infh, strings.Join(os.Args, " "))
-	if errors.Is(err, syscall.ENOSYS) {
-		Pl(err)
-		os.Exit(2)
+	_, ok := err.(sc.SCErr)
+	if ok {
+		panic(err)
 	}
 	Ck(err)
 	// Pprint(m)
