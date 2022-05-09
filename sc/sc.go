@@ -75,8 +75,6 @@ func (m *Machine) AddRule(txt string) {
 		return
 	case "package":
 		m.Package = parts[1]
-	case "machine":
-		m.Machine = parts[1]
 	case "s":
 		Assert(len(parts) >= 2, "missing state name: %s", txt)
 		s := &State{
@@ -149,7 +147,7 @@ func (m *Machine) Verify() (err error) {
 		for _, eventName := range m.EventNames {
 			_, ok := state.Transitions[eventName]
 			if !ok {
-				err = fmt.Errorf("unhandled event: machine %v, state %v, event %v", m.Machine, stateName, eventName)
+				err = fmt.Errorf("unhandled event: machine %v, state %v, event %v", m.Package, stateName, eventName)
 				return
 			}
 		}

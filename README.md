@@ -54,19 +54,33 @@ go install github.com/stevegt/statecraft@latest
 # Example
 
 See ./example/stoplight for a demo of two interacting state machines.
-The DSL for the `car` state machine from that example looks like this:
+The .statecraft DSL for the `car` state machine from that example
+looks like this:
 
 ```
 // Comments look like this.  We ignore blank lines.
 
-// Declare Go package and state machine name.
+// Case matters in this file -- the names you provide here are passed
+// straight through to the Go code generator as variable and struct
+// names. This means that if you generate the .go file in a
+// subdirectory as a separate package from your calling code, you'll
+// need to uppercase everything here so it will be exported.
+// 
+// The README and example code assumes that you will be generating the
+// .dot and .go files in a subdirectory as a separate package from
+// your calling code, so we uppercase everything in this example.
+//
+// You can instead choose to generate your .go in the same directory
+// as the calling code, in which case everything in your .statecraft
+// file can be lowercased.
 
+// Declare package name -- this is used verbatim as the `package` name
+// at the top of the generated .go:
 package car
-machine Car
 
 // Declare states with an 's' followed by the state node description.
-// - the first word of the description is used as the state node name 
-// - the state name must be unique
+// The first word of the description is used as the state node name.
+// Each state name must be unique.
 
 s Stopped at red light
 s Deciding whether to stop

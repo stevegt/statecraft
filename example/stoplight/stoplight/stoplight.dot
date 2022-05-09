@@ -1,5 +1,5 @@
 digraph "stoplight" {
-    label="Stoplight state machine";
+    label="stoplight state machine";
     
     Red; // Red
     Yellow; // Yellow

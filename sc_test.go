@@ -11,6 +11,9 @@ import (
 	"github.com/stevegt/statecraft/sc"
 )
 
+// regenerate testdata
+const regen bool = false
+
 func TestDot(t *testing.T) {
 	infn := "example/stoplight/car/car.statecraft"
 	infh, err := os.Open(infn)
@@ -21,7 +24,7 @@ func TestDot(t *testing.T) {
 	got := m.ToDot()
 
 	reffn := "testdata/car.dot"
-	if false {
+	if regen {
 		err = ioutil.WriteFile(reffn, got, 0644)
 		Ck(err)
 	}
@@ -45,7 +48,7 @@ func TestGo(t *testing.T) {
 	got := m.ToGo()
 
 	reffn := "testdata/car.go"
-	if false {
+	if regen {
 		err = ioutil.WriteFile(reffn, got, 0644)
 		Ck(err)
 	}

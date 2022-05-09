@@ -84,7 +84,6 @@ var txt string = `
 // Declare Go package and state machine name.
 
 package stoplight
-machine Stoplight
 
 // Declare states with an 's' followed by the state node description.
 // - the first word of the description is used as the state node name 
