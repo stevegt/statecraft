@@ -8,6 +8,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"syscall"
 	"text/template"
 
 	. "github.com/stevegt/goadapt"
@@ -142,12 +143,26 @@ func (m *Machine) AddRule(txt string) {
 	}
 }
 
+/*
+type SCError struct {
+	msg string
+}
+
+func (e SCError) Error() string {
+	return e.msg
+}
+
+func NewSCError(args ...interface{}) SCError {
+	return SCError{msg: FormatArgs(args)}
+}
+*/
+
 func (m *Machine) Verify() (err error) {
 	for stateName, state := range m.States {
 		for _, eventName := range m.EventNames {
 			_, ok := state.Transitions[eventName]
 			if !ok {
-				err = fmt.Errorf("unhandled event: machine %v, state %v, event %v", m.Package, stateName, eventName)
+				err = fmt.Errorf("%w: unhandled event: machine %v, state %v, event %v", syscall.ENOSYS, m.Package, stateName, eventName)
 				return
 			}
 		}

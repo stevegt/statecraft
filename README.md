@@ -26,13 +26,13 @@ go install github.com/stevegt/statecraft@latest
 1. Write a `foo/foo.statecraft` file that describes the state machine
    you want to generate.  See below and
    `./example/stoplight/car/car.statecraft` for the DSL syntax.
-2. Run `statecraft foo/foo.statecraft foo/foo.dot` to get the graphviz
-   output.
+2. Run `statecraft foo/foo.statecraft foo/foo.dot` to generate a
+   graphviz dot file.
 3. Fix any errors thrown by the `statecraft` run.  As of this writing,
    the most likely errors will be cases where you need to add DSL `t`
    (transition) statements to handle events in states where you didn't
-   expect them.  A wildcard source state is an easy way to handle
-   these -- see the bottom of
+   expect them.  The easy way to handle these is with a wildcard
+   source state -- see the bottom of
    `./example/stoplight/car/car.statecraft`.
 4. Use `xdot` or your favorite graphviz viewer to visually inspect the
    dot file for the state machine you've created.  Fix bugs.

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"strings"
+	"syscall"
 
 	. "github.com/stevegt/goadapt"
 	"github.com/stevegt/statecraft/sc"
@@ -13,7 +15,7 @@ const usage string = `usage: %s {infn} {outfn}`
 
 func main() {
 	if len(os.Args) != 3 {
-		Fpf(os.Stderr, usage, os.Args[0])
+		Fpf(os.Stderr, Spf("%s\n", usage), os.Args[0])
 		os.Exit(1)
 	}
 	infn := os.Args[1]
@@ -21,6 +23,10 @@ func main() {
 	Ck(err)
 
 	m, err := sc.Load(infh, strings.Join(os.Args, " "))
+	if errors.Is(err, syscall.ENOSYS) {
+		Pl(err)
+		os.Exit(2)
+	}
 	Ck(err)
 	// Pprint(m)
 
