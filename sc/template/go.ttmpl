@@ -6,60 +6,79 @@ import "fmt"
 // DO NOT EDIT
 // Original .statecraft file contents included at bottom.
 
-type Handlers interface {
+type handlers interface {
     {{- range $n := .MethodNames}}
     {{ $n }}()
     {{- end }}
 }
 
 // states
-type State string
-const (
+type State struct {
+    name string
+    label string
+}
+
+func (s State) String() string {
+    return s.name    
+}
+
+func (s State) Label() string {
+    return s.label    
+}
+
+var (
     {{- range $s := .LsStates }}
-    {{ $s.Name }} State = "{{ $s.Name }}" // {{$s.Label}}
+    {{ $s.Name }} = State{"{{ $s.Name }}", "{{$s.Label}}"}
     {{- end}}
 )
 
 // events
-type Event string
-const (
+type Event struct {
+    name string
+}
+
+func (e Event) String() string {
+    return e.name    
+}
+
+var (
     {{range $e := .EventNames}}
-    {{$e}} Event = "{{$e}}"
+    {{$e}} = Event{"{{$e}}"}
     {{- end}}
 )
 
-type Transition struct {
+type transition struct {
     Src    State
     Event  Event
 	Method func()
 	Dst    State
 }
 
-type Transitions map[Event]Transition
+type transitions map[Event]transition
 
-type Graph map[State]Transitions
+type graph map[State]transitions
 
 type Machine struct {
-    g Graph
+    g graph
     State State
 }
 
-func New(handlers Handlers, initState State) (m *Machine) {
+func New(h handlers, initState State) (m *Machine) {
     m = &Machine{
         State: initState,
     }
-    m.g = Graph{
+    m.g = graph{
         {{- range $s := .LsStates }}
-        State("{{ $s.Name }}"):  Transitions{
+        {{ $s.Name }}:  transitions{
             {{- range $e, $t := $s.Transitions }}
             {{- if $t.Method }}
-            Event("{{ $e }}"): Transition{
-                    Dst: State("{{ $t.Dst }}"), 
-                    Method: handlers.{{ $t.Method }}, 
+            {{ $e }}: transition{
+                    Dst: {{ $t.Dst }}, 
+                    Method: h.{{ $t.Method }}, 
             },
             {{- else }}
-            Event("{{ $e }}"): Transition{
-                    Dst: State("{{ $t.Dst }}"),
+            {{ $e }}: transition{
+                    Dst: {{ $t.Dst }},
             },
             {{- end}}
             {{- end}}
@@ -73,7 +92,7 @@ func (m *Machine) Tick(event Event) (newState State, err error) {
     src := m.g[m.State]
     t, ok := src[event]
     if !ok {
-        err = fmt.Errorf("unhandled: state %s event %s", string(m.State), string(event))
+        err = fmt.Errorf("unhandled: state %s event %s", m.State.String(), event.String())
         return
     }
     m.State = t.Dst

@@ -13,6 +13,11 @@
 // You can instead choose to generate your .go in the same directory
 // as the calling code, in which case everything in your .statecraft
 // file can be lowercased.
+//
+// Another consideration is reserved words -- several are used in the
+// generated go code, including 'State', 'Event', 'New', 'Machine',
+// and 'Tick'.  You will see compiler errors if you use any of these
+// words for your own state or event names.
 
 // Declare package name -- this is used verbatim as the 'package' name
 // at the top of the generated .go:

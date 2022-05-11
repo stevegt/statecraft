@@ -6,58 +6,77 @@ import "fmt"
 // DO NOT EDIT
 // Original .statecraft file contents included at bottom.
 
-type Handlers interface {
+type handlers interface {
 }
 
 // states
-type State string
-const (
-    Red State = "Red" // Red
-    Yellow State = "Yellow" // Yellow
-    Green State = "Green" // Green
+type State struct {
+    name string
+    label string
+}
+
+func (s State) String() string {
+    return s.name    
+}
+
+func (s State) Label() string {
+    return s.label    
+}
+
+var (
+    Red = State{"Red", "Red"}
+    Yellow = State{"Yellow", "Yellow"}
+    Green = State{"Green", "Green"}
 )
 
 // events
-type Event string
-const (
+type Event struct {
+    name string
+}
+
+func (e Event) String() string {
+    return e.name    
+}
+
+var (
     
-    Timer Event = "Timer"
+    Timer = Event{"Timer"}
 )
 
-type Transition struct {
+type transition struct {
     Src    State
     Event  Event
 	Method func()
 	Dst    State
 }
 
-type Transitions map[Event]Transition
+type transitions map[Event]transition
 
-type Graph map[State]Transitions
+type graph map[State]transitions
 
 type Machine struct {
-    g Graph
+    g graph
     State State
 }
 
-func New(handlers Handlers, initState State) (m *Machine) {
+func New(h handlers, initState State) (m *Machine) {
     m = &Machine{
         State: initState,
     }
-    m.g = Graph{
-        State("Red"):  Transitions{
-            Event("Timer"): Transition{
-                    Dst: State("Green"),
+    m.g = graph{
+        Red:  transitions{
+            Timer: transition{
+                    Dst: Green,
             },
         },
-        State("Yellow"):  Transitions{
-            Event("Timer"): Transition{
-                    Dst: State("Red"),
+        Yellow:  transitions{
+            Timer: transition{
+                    Dst: Red,
             },
         },
-        State("Green"):  Transitions{
-            Event("Timer"): Transition{
-                    Dst: State("Yellow"),
+        Green:  transitions{
+            Timer: transition{
+                    Dst: Yellow,
             },
         },
     }
@@ -68,7 +87,7 @@ func (m *Machine) Tick(event Event) (newState State, err error) {
     src := m.g[m.State]
     t, ok := src[event]
     if !ok {
-        err = fmt.Errorf("unhandled: state %s event %s", string(m.State), string(event))
+        err = fmt.Errorf("unhandled: state %s event %s", m.State.String(), event.String())
         return
     }
     m.State = t.Dst

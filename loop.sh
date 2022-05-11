@@ -2,29 +2,25 @@
 
 # used during development
 
-pid=$1
 wd=$(pwd)
 
-retry() {
+while true
+do
+    set +x
+    echo ==========
+    set -x
     cd $wd
-    exec $0 $1
-}
+    inotifywait -r -e modify .
+    sleep 1
+    [ -n "$pid" ] && kill $pid
+    go test -v || continue 
+    go build || continue
 
-echo ==========
-set -x
-
-inotifywait -r -e modify .
-sleep 1
-[ -n "$pid" ] && kill $pid
-go test -v || retry
-go build || retry
-
-# sc=$(realpath statecraft)
-cd example/stoplight
-# $sc car.statecraft car.dot || retry
-# $sc stoplight.statecraft stoplight.dot || retry
-go generate && go run . &
-pid=$!
-sleep 3
-
-retry $pid
+    # sc=$(realpath statecraft)
+    cd example/stoplight
+    # $sc car.statecraft car.dot || retry
+    # $sc stoplight.statecraft stoplight.dot || retry
+    go generate || continue
+    go run . &
+    pid=$!
+done

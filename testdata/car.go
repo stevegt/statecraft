@@ -6,139 +6,158 @@ import "fmt"
 // DO NOT EDIT
 // Original .statecraft file contents included at bottom.
 
-type Handlers interface {
+type handlers interface {
     Gas()
     Brake()
     Decide()
 }
 
 // states
-type State string
-const (
-    Stopped State = "Stopped" // Stopped at red light
-    Deciding State = "Deciding" // Deciding whether to stop
-    Going State = "Going" // Going through light
-    Beyond State = "Beyond" // Beyond light already
+type State struct {
+    name string
+    label string
+}
+
+func (s State) String() string {
+    return s.name    
+}
+
+func (s State) Label() string {
+    return s.label    
+}
+
+var (
+    Stopped = State{"Stopped", "Stopped at red light"}
+    Deciding = State{"Deciding", "Deciding whether to stop"}
+    Going = State{"Going", "Going through light"}
+    Beyond = State{"Beyond", "Beyond light already"}
 )
 
 // events
-type Event string
-const (
+type Event struct {
+    name string
+}
+
+func (e Event) String() string {
+    return e.name    
+}
+
+var (
     
-    Green Event = "Green"
-    Stop Event = "Stop"
-    Go Event = "Go"
-    Red Event = "Red"
-    Yellow Event = "Yellow"
+    Green = Event{"Green"}
+    Stop = Event{"Stop"}
+    Go = Event{"Go"}
+    Red = Event{"Red"}
+    Yellow = Event{"Yellow"}
 )
 
-type Transition struct {
+type transition struct {
     Src    State
     Event  Event
 	Method func()
 	Dst    State
 }
 
-type Transitions map[Event]Transition
+type transitions map[Event]transition
 
-type Graph map[State]Transitions
+type graph map[State]transitions
 
 type Machine struct {
-    g Graph
+    g graph
     State State
 }
 
-func New(handlers Handlers, initState State) (m *Machine) {
+func New(h handlers, initState State) (m *Machine) {
     m = &Machine{
         State: initState,
     }
-    m.g = Graph{
-        State("Stopped"):  Transitions{
-            Event("Go"): Transition{
-                    Dst: State("Going"), 
-                    Method: handlers.Gas, 
+    m.g = graph{
+        Stopped:  transitions{
+            Go: transition{
+                    Dst: Going, 
+                    Method: h.Gas, 
             },
-            Event("Green"): Transition{
-                    Dst: State("Going"), 
-                    Method: handlers.Gas, 
+            Green: transition{
+                    Dst: Going, 
+                    Method: h.Gas, 
             },
-            Event("Red"): Transition{
-                    Dst: State("Stopped"), 
-                    Method: handlers.Brake, 
+            Red: transition{
+                    Dst: Stopped, 
+                    Method: h.Brake, 
             },
-            Event("Stop"): Transition{
-                    Dst: State("Stopped"), 
-                    Method: handlers.Brake, 
+            Stop: transition{
+                    Dst: Stopped, 
+                    Method: h.Brake, 
             },
-            Event("Yellow"): Transition{
-                    Dst: State("Deciding"), 
-                    Method: handlers.Decide, 
-            },
-        },
-        State("Deciding"):  Transitions{
-            Event("Go"): Transition{
-                    Dst: State("Going"), 
-                    Method: handlers.Gas, 
-            },
-            Event("Green"): Transition{
-                    Dst: State("Going"), 
-                    Method: handlers.Gas, 
-            },
-            Event("Red"): Transition{
-                    Dst: State("Stopped"), 
-                    Method: handlers.Brake, 
-            },
-            Event("Stop"): Transition{
-                    Dst: State("Stopped"), 
-                    Method: handlers.Brake, 
-            },
-            Event("Yellow"): Transition{
-                    Dst: State("Deciding"), 
-                    Method: handlers.Decide, 
+            Yellow: transition{
+                    Dst: Deciding, 
+                    Method: h.Decide, 
             },
         },
-        State("Going"):  Transitions{
-            Event("Go"): Transition{
-                    Dst: State("Going"), 
-                    Method: handlers.Gas, 
+        Deciding:  transitions{
+            Go: transition{
+                    Dst: Going, 
+                    Method: h.Gas, 
             },
-            Event("Green"): Transition{
-                    Dst: State("Going"), 
-                    Method: handlers.Gas, 
+            Green: transition{
+                    Dst: Going, 
+                    Method: h.Gas, 
             },
-            Event("Red"): Transition{
-                    Dst: State("Beyond"), 
-                    Method: handlers.Gas, 
+            Red: transition{
+                    Dst: Stopped, 
+                    Method: h.Brake, 
             },
-            Event("Stop"): Transition{
-                    Dst: State("Stopped"), 
-                    Method: handlers.Brake, 
+            Stop: transition{
+                    Dst: Stopped, 
+                    Method: h.Brake, 
             },
-            Event("Yellow"): Transition{
-                    Dst: State("Deciding"), 
-                    Method: handlers.Decide, 
+            Yellow: transition{
+                    Dst: Deciding, 
+                    Method: h.Decide, 
             },
         },
-        State("Beyond"):  Transitions{
-            Event("Go"): Transition{
-                    Dst: State("Going"), 
-                    Method: handlers.Gas, 
+        Going:  transitions{
+            Go: transition{
+                    Dst: Going, 
+                    Method: h.Gas, 
             },
-            Event("Green"): Transition{
-                    Dst: State("Going"), 
-                    Method: handlers.Gas, 
+            Green: transition{
+                    Dst: Going, 
+                    Method: h.Gas, 
             },
-            Event("Red"): Transition{
-                    Dst: State("Stopped"), 
-                    Method: handlers.Brake, 
+            Red: transition{
+                    Dst: Beyond, 
+                    Method: h.Gas, 
             },
-            Event("Stop"): Transition{
-                    Dst: State("Stopped"), 
-                    Method: handlers.Brake, 
+            Stop: transition{
+                    Dst: Stopped, 
+                    Method: h.Brake, 
             },
-            Event("Yellow"): Transition{
-                    Dst: State("Deciding"), 
-                    Method: handlers.Decide, 
+            Yellow: transition{
+                    Dst: Deciding, 
+                    Method: h.Decide, 
+            },
+        },
+        Beyond:  transitions{
+            Go: transition{
+                    Dst: Going, 
+                    Method: h.Gas, 
+            },
+            Green: transition{
+                    Dst: Going, 
+                    Method: h.Gas, 
+            },
+            Red: transition{
+                    Dst: Stopped, 
+                    Method: h.Brake, 
+            },
+            Stop: transition{
+                    Dst: Stopped, 
+                    Method: h.Brake, 
+            },
+            Yellow: transition{
+                    Dst: Deciding, 
+                    Method: h.Decide, 
             },
         },
     }
@@ -149,7 +168,7 @@ func (m *Machine) Tick(event Event) (newState State, err error) {
     src := m.g[m.State]
     t, ok := src[event]
     if !ok {
-        err = fmt.Errorf("unhandled: state %s event %s", string(m.State), string(event))
+        err = fmt.Errorf("unhandled: state %s event %s", m.State.String(), event.String())
         return
     }
     m.State = t.Dst
@@ -175,6 +194,11 @@ var txt string = `
 // You can instead choose to generate your .go in the same directory
 // as the calling code, in which case everything in your .statecraft
 // file can be lowercased.
+//
+// Another consideration is reserved words -- several are used in the
+// generated go code, including 'State', 'Event', 'New', 'Machine',
+// and 'Tick'.  You will see compiler errors if you use any of these
+// words for your own state or event names.
 
 // Declare package name -- this is used verbatim as the 'package' name
 // at the top of the generated .go:

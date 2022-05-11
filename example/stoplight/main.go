@@ -65,16 +65,18 @@ func light() (ssm *stoplight.Machine, events chan c.Event) {
 			// light state
 			lightState, err := ssm.Tick(s.Timer)
 			Ck(err)
-			// send the new stoplight state to the car, casting it as
-			// a car state machine input event
-			events <- c.Event(lightState)
+			// send the new stoplight state to the car as
+			// a car state machine input event, then
 			// sleep until next timer event
 			switch lightState {
 			case s.Green:
+				events <- c.Green
 				time.Sleep(5 * time.Second)
 			case s.Yellow:
+				events <- c.Yellow
 				time.Sleep(2 * time.Second)
 			case s.Red:
+				events <- c.Red
 				time.Sleep(7 * time.Second)
 			}
 		}
@@ -113,8 +115,8 @@ func (handlers *Car) Gas() {
 
 func (handlers *Car) Decide() {
 	if rand.Float64() < rand.Float64() {
-		handlers.events <- c.Event("Go")
+		handlers.events <- c.Go
 	} else {
-		handlers.events <- c.Event("Stop")
+		handlers.events <- c.Stop
 	}
 }

@@ -59,5 +59,4 @@ func TestGo(t *testing.T) {
 	dmp := diffmatchpatch.New()
 	diffs := dmp.DiffMain(string(ref), string(got), false)
 	Tassert(t, bytes.Equal(ref, got), dmp.DiffPrettyText(diffs))
-
 }
