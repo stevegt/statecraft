@@ -9,7 +9,10 @@ import (
 	"github.com/stevegt/statecraft/sc"
 )
 
-const usage string = `usage: %s {infn} {outfn}`
+const version = "v0.6.0"
+
+const usage string = `statecraft %s
+usage: %s {infn} {outfn}`
 
 // convert panic into clean exit
 func exit() {
@@ -33,7 +36,7 @@ func main() {
 	var err error
 
 	if len(os.Args) != 3 {
-		Fpf(os.Stderr, Spf("%s\n", usage), os.Args[0])
+		Fpf(os.Stderr, Spf("%s\n", usage), version, os.Args[0])
 		os.Exit(1)
 	}
 	infn := os.Args[1]
@@ -41,8 +44,10 @@ func main() {
 	Ck(err)
 
 	m, err := sc.Load(infh, strings.Join(os.Args, " "))
+	// Pf("%T\n", err)
 	_, ok := err.(sc.SCErr)
 	if ok {
+		// Pl("salkfdja")
 		panic(err)
 	}
 	Ck(err)
