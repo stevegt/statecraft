@@ -16,11 +16,9 @@ versions use `go install` to install binaries:
 go install github.com/stevegt/statecraft@latest
 ```
 
-# Quick Start
+# Quick Start 
 
 1. Install; see above.
-2. In the base directory of your project, run `go mod init
-   your/repo/uri` if you haven't already.  
 3. Run `mkdir foo`, where `foo` is the name of the state machine
    you're creating.
 1. Write a `foo/foo.statecraft` file that describes the state machine
@@ -36,6 +34,12 @@ go install github.com/stevegt/statecraft@latest
    `./example/stoplight/car/car.statecraft`.
 4. Use `xdot` or your favorite graphviz viewer to visually inspect the
    dot file for the state machine you've created.  Fix bugs.
+
+# Quick Start for Generating Go Code
+
+1. Do the Quick Start steps above.
+2. In the base directory of your project, run `go mod init
+   your/repo/uri` if you haven't already.  
 2. Run `statecraft foo/foo.statecraft foo/foo.go` to generate the Go
    code for your state machine.
 1. In your calling code, create a struct or other custom type with
@@ -50,6 +54,18 @@ go install github.com/stevegt/statecraft@latest
    foo/foo.dot` and `//go:generate statecraft foo/foo.statecraft
    foo/foo.go` statements to your calling code so `go generate` will
    run `statecraft` for you in the future.
+
+# Quick Start for Generating Python Code
+
+1. Do the Quick Start steps above.
+2. Run `statecraft foo/foo.statecraft foo/foo.py` to generate the
+   Python code for your state machine.
+1. In your calling code, `import foo.foo`, write an event loop of some
+   sort, and in the loop, call foo.tick() for each event.  See the
+   comments in `./example/stoplight/main.py`.
+4. Remember to re-run `statecraft foo/foo.statecraft foo/foo.py` if
+   you change your statecraft file.
+
 
 # Example
 

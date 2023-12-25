@@ -16,3 +16,4 @@
 
 statecraft
 python/__pycache__/
+*.pyc

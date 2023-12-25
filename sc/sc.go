@@ -268,3 +268,13 @@ func (m *Machine) ToGo() (out []byte) {
 	out = buf.Bytes()
 	return
 }
+
+// ToLang generates code for a given language.
+func (m *Machine) ToLang(lang string) (out []byte) {
+	t := template.Must(template.ParseFS(fs, Spf("template/%s.ttmpl", lang)))
+	var buf bytes.Buffer
+	err := t.Execute(&buf, m)
+	Ck(err)
+	out = buf.Bytes()
+	return
+}

@@ -9,7 +9,7 @@ import (
 	"github.com/stevegt/statecraft/sc"
 )
 
-const version = "v0.6.0"
+const version = "v0.7.0"
 
 const usage string = `statecraft %s
 usage: %s {infn} {outfn}`
@@ -58,9 +58,13 @@ func main() {
 	var buf []byte
 
 	if strings.HasSuffix(outfn, ".dot") {
+		// XXX replace with ToLang
 		buf = m.ToDot()
 	} else if strings.HasSuffix(outfn, ".go") {
+		// XXX replace with ToLang
 		buf = m.ToGo()
+	} else if strings.HasSuffix(outfn, ".py") {
+		buf = m.ToLang("python")
 	}
 
 	err = ioutil.WriteFile(outfn, buf, 0644)

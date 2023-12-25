@@ -5,15 +5,10 @@ import (
 	"time"
 
 	. "github.com/stevegt/goadapt"
-	c "github.com/stevegt/statecraft/example/stoplight/car"
-	"github.com/stevegt/statecraft/example/stoplight/stoplight"
-	s "github.com/stevegt/statecraft/example/stoplight/stoplight"
+	c "github.com/stevegt/statecraft/example/stoplight/go/car"
+	"github.com/stevegt/statecraft/example/stoplight/go/stoplight"
+	s "github.com/stevegt/statecraft/example/stoplight/go/stoplight"
 )
-
-//go:generate ../../statecraft stoplight/stoplight.statecraft stoplight/stoplight.go
-//go:generate ../../statecraft stoplight/stoplight.statecraft stoplight/stoplight.dot
-//go:generate ../../statecraft car/car.statecraft car/car.go
-//go:generate ../../statecraft car/car.statecraft car/car.dot
 
 func main() {
 
